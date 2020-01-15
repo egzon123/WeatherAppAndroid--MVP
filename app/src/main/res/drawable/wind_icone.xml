@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="56dp"
+    android:height="47dp"
+    android:viewportWidth="56"
+    android:viewportHeight="47">
+    <path
+        android:fillColor="#fff"
+        android:name="windIcon"
+        android:pathData="m43 25c0 0 0 0 -0 0h-38v-3h28h3.31h6.69c3.31 0 6 -2.69 6 -6c0 -3.31 -2.69 -6 -6 -6c-3.31 0 -6 2.69 -6 6v3h-3v-3c0 -4.97 4.03 -9 9 -9c4.97 0 9 4.03 9 9c0 4.97 -4.03 9 -9 9zm-19 -6h-19v-3h12h1.26h5.74c2.21 0 4 -1.79 4 -4c0 -2.21 -1.79 -4 -4 -4c-2.21 0 -4 1.79 -4 4v1h-3v-1c0 -3.87 3.13 -7 7 -7c3.87 0 7 3.13 7 7c0 3.87 -3.13 7 -7 7zm23 17c0 4.42 -3.58 8 -8 8c-4.42 0 -8 -3.58 -8 -8v-2h3v2c0 2.76 2.24 5 5 5c2.76 0 5 -2.24 5 -5c0 -2.76 -2.24 -5 -5 -5h-6.24h-2.76h-25v-3h34c4.42 0 8 3.58 8 8z" />
+</vector>

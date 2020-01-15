@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="65dp"
+    android:height="69dp"
+    android:viewportWidth="65"
+    android:viewportHeight="69">
+    <path
+        android:fillColor="#fff"
+        android:name="north, compass"
+        android:pathData="m35 57c-13.81 0 -25 -11.19 -25 -25c0 -13.81 11.19 -25 25 -25c13.81 0 25 11.19 25 25c0 13.81 -11.19 25 -25 25zm0 -47c-12.15 0 -22 9.85 -22 22c0 12.15 9.85 22 22 22c12.15 0 22 -9.85 22 -22c0 -12.15 -9.85 -22 -22 -22zm-10 22 10 -15 10 15 -10 15 -10 -15zm4 0 6 10 6 -10h-12z" />
+</vector>

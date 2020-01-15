@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="59dp"
+    android:viewportWidth="64"
+    android:viewportHeight="59">
+    <path
+        android:fillColor="#fff"
+        android:name="sun, sea"
+        android:pathData="m9 37v-3h12.18c-0.75 -1.68 -1.18 -3.54 -1.18 -5.5c0 -7.46 6.04 -13.5 13.5 -13.5c7.46 0 13.5 6.04 13.5 13.5c0 1.96 -0.43 3.82 -1.18 5.5h12.18v3h-49zm35 -8.5c0 -5.8 -4.7 -10.5 -10.5 -10.5c-5.8 0 -10.5 4.7 -10.5 10.5c0 2.02 0.58 3.9 1.57 5.5h17.86c0.99 -1.6 1.57 -3.48 1.57 -5.5zm6 -1.5h7v3h-7v-3zm-5.89 -11.23 4.95 -4.95 2.12 2.12 -4.95 4.95 -2.12 -2.12zm-12.11 -10.77h3v7h-3v-7zm-15 25h-7v-3h7v3zm-1.18 -17.06 2.12 -2.12 4.95 4.95 -2.12 2.12 -4.95 -4.95zm8.18 31.06h-10v-3h10v3zm7 6h-10v-3h10v3zm-2 -9h10v3h-10v-3zm15 0h10v3h-10v-3zm3 9h-10v-3h10v3z" />
+</vector>
