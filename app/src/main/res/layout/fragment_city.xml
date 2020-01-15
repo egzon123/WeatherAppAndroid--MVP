@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/new1"
-    tools:context=".CityFragment">
+    tools:context=".fragments.CityFragment">
 
     <com.mancj.materialsearchbar.MaterialSearchBar
         style="@style/MaterialSearchBarLight"
