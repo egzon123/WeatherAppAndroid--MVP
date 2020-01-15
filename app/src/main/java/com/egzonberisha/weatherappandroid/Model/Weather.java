@@ -1,6 +1,8 @@
 package com.egzonberisha.weatherappandroid.Model;
 
-public class Weather {
+import com.hannesdorfmann.mosby3.mvp.MvpView;
+
+public class Weather  {
     private int id;
     private String main;
     private String description;

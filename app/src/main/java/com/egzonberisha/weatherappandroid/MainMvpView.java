@@ -3,5 +3,7 @@ package com.egzonberisha.weatherappandroid;
 import com.hannesdorfmann.mosby3.mvp.MvpView;
 
 public interface MainMvpView extends MvpView {
-    void showLocationPermissionDialog();
+
+    void showLoactionDenied();
+    void setUpTabLayout();
 }

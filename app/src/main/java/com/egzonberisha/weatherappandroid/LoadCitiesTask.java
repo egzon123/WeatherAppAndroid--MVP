@@ -24,6 +24,7 @@ public class LoadCitiesTask extends SimpleAsyncTask<Void> {
     }
         @Override
         protected Void doInBackgroundSimple() {
+        sqliteHelper = new SqliteHelper(context);
             //check if database exist
             if(sqliteHelper.isEmpty(SqliteHelper.TABLE_CITIES)){
 

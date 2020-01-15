@@ -1,5 +1,7 @@
 package com.egzonberisha.weatherappandroid.Model;
 
+import com.hannesdorfmann.mosby3.mvp.MvpView;
+
 import java.util.ArrayList;
 
 public class WeatherResult {

@@ -9,7 +9,5 @@ public class WeatherForecastResult {
     public List<MyList> list;
     public City city;
 
-
-
 }
 
