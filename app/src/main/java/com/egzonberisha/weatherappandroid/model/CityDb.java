@@ -1,16 +1,19 @@
 package com.egzonberisha.weatherappandroid.model;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "citydb_table")
 public class CityDb {
-    private String id;
+    @PrimaryKey(autoGenerate = true)
+    private int id;
 
     private String name;
-
-    public CityDb(String id,String name){
-        this.id = id;
+    public CityDb(String name){
         this.name = name;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
@@ -18,7 +21,7 @@ public class CityDb {
         return name;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 

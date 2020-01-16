@@ -32,7 +32,6 @@ import android.widget.Toast;
 
 import com.egzonberisha.weatherappandroid.R;
 import com.egzonberisha.weatherappandroid.common.Common;
-import com.egzonberisha.weatherappandroid.model.SqliteHelper;
 import com.egzonberisha.weatherappandroid.model.WeatherResult;
 import com.egzonberisha.weatherappandroid.retrofit.IOpenWeatherMap;
 import com.egzonberisha.weatherappandroid.retrofit.RetrofitClient;
@@ -52,7 +51,7 @@ public class CityFragment extends Fragment {
     private MaterialSearchBar searchBar;
     private PublishSubject<String> mPublishSubject;
     private TextView mNoResultsTextview;
-    private SqliteHelper sqliteHelper;
+
 
 
     ImageView img_weather;
@@ -80,7 +79,7 @@ public class CityFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        sqliteHelper = new SqliteHelper(context);
+//        sqliteHelper = new SqliteHelper(context);
     }
 
 
@@ -196,7 +195,7 @@ public class CityFragment extends Fragment {
         @Override
         public List<String> apply(String s) throws Exception {
 
-            return sqliteHelper.searchForCity(s);
+//            return sqliteHelper.searchForCity(s);
         }
 
     };

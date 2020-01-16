@@ -1,10 +1,11 @@
 package com.egzonberisha.weatherappandroid.presenters;
 
+import android.app.Application;
 import android.content.Context;
 
 import com.egzonberisha.weatherappandroid.R;
 import com.egzonberisha.weatherappandroid.model.CityDb;
-import com.egzonberisha.weatherappandroid.model.SqliteHelper;
+import com.egzonberisha.weatherappandroid.model.CityDbRepository;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.label305.asynctask.SimpleAsyncTask;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 public class LoadCitiesTask extends SimpleAsyncTask<Void> {
-    SqliteHelper sqliteHelper;
+    private CityDbRepository cityDbRepository;
     private Context context;
 
     public LoadCitiesTask(Context context){
@@ -26,12 +27,10 @@ public class LoadCitiesTask extends SimpleAsyncTask<Void> {
     }
         @Override
         protected Void doInBackgroundSimple() {
-        sqliteHelper = new SqliteHelper(context);
+    cityDbRepository = new CityDbRepository((Application) context.getApplicationContext());
+            System.out.println("<<<----- LoadCityTask  count = "+cityDbRepository.countRecords());
             //check if database exist
-            if(sqliteHelper.isEmpty(SqliteHelper.TABLE_CITIES)){
-
-
-
+            if(cityDbRepository.countRecords() <1){
             List<String> listCities = new ArrayList<>();
             try {
                 StringBuilder builder = new StringBuilder();
@@ -52,7 +51,7 @@ public class LoadCitiesTask extends SimpleAsyncTask<Void> {
             }
             System.out.println("-------------->>>>>>");
             for(String s :listCities){
-                sqliteHelper.addCity(new CityDb(null,s));
+                cityDbRepository.insert(new CityDb(s));
             }
             System.out.println("-------------->>>>>>");
 

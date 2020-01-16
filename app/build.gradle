@@ -88,4 +88,5 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+
 }
