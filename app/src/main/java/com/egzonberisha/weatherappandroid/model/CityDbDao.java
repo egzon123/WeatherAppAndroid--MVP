@@ -17,4 +17,7 @@ public interface CityDbDao {
 
     @Query("SELECT count(*) FROM citydb_table")
     long countRecords();
+
+    @Query("SELECT * FROM citydb_table where name LIKE :cityName || '%'")
+    List<CityDb> searchForCity(String cityName);
 }

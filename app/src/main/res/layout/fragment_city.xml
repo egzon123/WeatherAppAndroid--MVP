@@ -17,6 +17,11 @@
         android:layout_height="wrap_content">
 
     </com.mancj.materialsearchbar.MaterialSearchBar>
+    <!-- Content View -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/contentView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
     <FrameLayout
         android:layout_marginTop="16dp"
         android:layout_width="match_parent"
@@ -311,25 +316,21 @@
 
         </LinearLayout>
 
-        <ProgressBar
-            android:id="@+id/loading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:visibility="gone"
-            android:indeterminate="true"
-            />
-
     </FrameLayout>
-    <TextView
-        android:id="@+id/mNoResultsTextview"
-        android:layout_width="match_parent"
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    <ProgressBar
+        android:id="@+id/loadingView"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:text="No Result"
-        android:textColor="@android:color/white"
-        android:textSize="30sp"
-        android:gravity="center"/>
+        android:layout_centerInParent="true"
+        android:indeterminate="true" />
+
+
+    <!-- Error view -->
+    <TextView
+        android:id="@+id/errorView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 
 </LinearLayout>

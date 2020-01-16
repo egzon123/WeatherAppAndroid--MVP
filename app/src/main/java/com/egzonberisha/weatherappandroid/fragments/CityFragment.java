@@ -2,10 +2,13 @@ package com.egzonberisha.weatherappandroid.fragments;
 
 
 import android.annotation.SuppressLint;
+import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -32,9 +35,15 @@ import android.widget.Toast;
 
 import com.egzonberisha.weatherappandroid.R;
 import com.egzonberisha.weatherappandroid.common.Common;
+import com.egzonberisha.weatherappandroid.model.CityDbRepository;
 import com.egzonberisha.weatherappandroid.model.WeatherResult;
+import com.egzonberisha.weatherappandroid.presenters.CitySearchMvpPresenter;
+import com.egzonberisha.weatherappandroid.presenters.TodayWeatherPresenter;
 import com.egzonberisha.weatherappandroid.retrofit.IOpenWeatherMap;
 import com.egzonberisha.weatherappandroid.retrofit.RetrofitClient;
+import com.egzonberisha.weatherappandroid.views.CitySearchMvpView;
+import com.egzonberisha.weatherappandroid.views.TodayWeatherView;
+import com.hannesdorfmann.mosby3.mvp.lce.MvpLceFragment;
 import com.mancj.materialsearchbar.MaterialSearchBar;
 import com.squareup.picasso.Picasso;
 
@@ -46,20 +55,23 @@ import java.util.concurrent.TimeUnit;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class CityFragment extends Fragment {
+public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResult,CitySearchMvpView ,CitySearchMvpPresenter>
+        implements CitySearchMvpView, SwipeRefreshLayout.OnRefreshListener {
+
     private List<String> listCities;
     private MaterialSearchBar searchBar;
-    private PublishSubject<String> mPublishSubject;
-    private TextView mNoResultsTextview;
 
+    private TextView mNoResultsTextview;
+    CompositeDisposable disposables;
+    PublishSubject<String> mPublishSubject;
+    IOpenWeatherMap mService;
+    CityDbRepository cityDbRepository;
 
 
     ImageView img_weather;
     TextView txt_city_name, txt_humidity, txt_sunrise, txt_sunset, txt_pressure, txt_temperature, txt_description, txt_date_time, txt_wind, txt_geo_coord;
     LinearLayout weather_panel;
     ProgressBar loading;
-    CompositeDisposable disposables;
-    IOpenWeatherMap mService;
 
     static CityFragment instance;
 
@@ -71,18 +83,28 @@ public class CityFragment extends Fragment {
     }
 
     public CityFragment() {
-
+        disposables = new CompositeDisposable();
         Retrofit retrofit = RetrofitClient.getInstance();
         mService = retrofit.create(IOpenWeatherMap.class);
+
+        System.out.println("--->>>>> City Fragment constructor");
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-//        sqliteHelper = new SqliteHelper(context);
+        cityDbRepository = new CityDbRepository((Application) context.getApplicationContext());
     }
 
+    @Override
+    protected String getErrorMessage(Throwable e, boolean pullToRefresh) {
+        return null;
+    }
 
+    @Override
+    public CitySearchMvpPresenter createPresenter() {
+        return new CitySearchMvpPresenter();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -104,27 +126,29 @@ public class CityFragment extends Fragment {
         txt_geo_coord = itemView.findViewById(R.id.txt_geo_coord);
 
         weather_panel = itemView.findViewById(R.id.weather_panel);
-        loading = itemView.findViewById(R.id.loading);
+        loading = itemView.findViewById(R.id.loadingView);
         searchBar = itemView.findViewById(R.id.searchBar);
-        mNoResultsTextview = itemView.findViewById(R.id.mNoResultsTextview);
+
         disposables = new CompositeDisposable();
         listCities = new ArrayList<>();
-        initObservable();
         searchBar.setEnabled(true);
-
-
-       listenToSearchInput();
-
+        initObservable();
 
 //       new LoadCities().execute(); // AsyncTask class to load Cities list
 
         return itemView;
     }
 
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        contentView.setOnRefreshListener(this);
+        listenToSearchInput();
 
-    //
+    }
+
     @SuppressLint("CheckResult")
-    private void initObservable() {
+    public void initObservable() {
         mPublishSubject = PublishSubject.create();
         mPublishSubject
                 .debounce(400, TimeUnit.MILLISECONDS)
@@ -139,7 +163,7 @@ public class CityFragment extends Fragment {
 
                     @Override
                     public void onNext(List<String> strings) {
-
+                        System.out.println("-->>Inside onNext init--->> "+strings.toString());
                         loading.setVisibility(View.GONE);
                         if(strings.size() >1) {
 
@@ -165,41 +189,17 @@ public class CityFragment extends Fragment {
 
     }
 
-    private void handleSearchResults(List<String> strings) {
-        if (strings.isEmpty()) {
-//            showNoSearchResults();
-        } else {
-            showSearchResults(strings);
-        }
-    }
-
-    private void showNoSearchResults() {
-        mNoResultsTextview.setVisibility(View.VISIBLE);
-
-    }
-
-
-    private void showSearchResults(List<String> cities) {
-        loading.setVisibility(View.GONE);
-        if(cities.size() >1){
-
-        System.out.println("Inside showSearchResult --------->>>>>>> "+cities.size()+" -- "+cities.get(0));
-        long startTime = SystemClock.elapsedRealtime();
-        searchBar.setLastSuggestions(cities);
-        Log.d("CityFragment","Time it took:" + (SystemClock.elapsedRealtime() - startTime));
-
-        }
-    }
-
     Function<String, List<String>> searchString = new Function<String, List<String>>() {
         @Override
         public List<String> apply(String s) throws Exception {
-
-//            return sqliteHelper.searchForCity(s);
+            System.out.println("Inside apply searchString ------->>>"+s);
+            return cityDbRepository.getCitiesByCityName(s);
         }
 
     };
 
+
+    @Override
     public void searchConfirmed(){
         searchBar.setOnSearchActionListener(new MaterialSearchBar.OnSearchActionListener() {
 
@@ -211,7 +211,9 @@ public class CityFragment extends Fragment {
 
                 @Override
                 public void onSearchConfirmed(CharSequence text) {
-                    getWeatherInformation(text.toString());
+                    presenter.setCityNameToSearch(text.toString());
+                  loadData(false);
+
                   getView().clearFocus();
                 }
 
@@ -222,125 +224,6 @@ public class CityFragment extends Fragment {
             });
     }
 
-//    private class LoadCities extends SimpleAsyncTask<List<CityDb>> {
-//
-//        @Override
-//        protected List<CityDb> doInBackgroundSimple() {
-//
-//            SqliteHelper sqliteHelper = new SqliteHelper(getContext());
-//
-//
-//            return sqliteHelper.getAllCitites();
-//        }
-//
-//        @RequiresApi(api = Build.VERSION_CODES.N)
-//        @Override
-//        protected void onSuccess(final List<CityDb> listCity) {
-//
-//            super.onSuccess(listCity);
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                strings = listCity.stream()
-//                        .map(object -> Objects.toString(object,null))
-//                        .collect(Collectors.toList());
-//            }
-//            searchBar.setEnabled(true);
-//            searchBar.addTextChangeListener(new TextWatcher() {
-//                @Override
-//                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//
-//                }
-//
-//                @Override
-//                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//
-//                    List<String> suggest = new ArrayList<>();
-//                    long startTime = SystemClock.elapsedRealtime();
-//                    for (CityDb search : listCity) {
-//                        if (search.getName().toLowerCase().contains(searchBar.getText().toLowerCase())) {
-//                            suggest.add(search.getName());
-//                        }
-//                    }
-//                    searchBar.setLastSuggestions(suggest);
-//                    Log.d("CityFragment","Time it took:" + (SystemClock.elapsedRealtime() - startTime));
-//
-//                }
-//
-//                @Override
-//                public void afterTextChanged(Editable editable) {
-////
-//                }
-//            });
-//
-//            searchBar.setOnSearchActionListener(new MaterialSearchBar.OnSearchActionListener() {
-//
-//                @Override
-//                public void onSearchStateChanged(boolean enabled) {
-//
-//                }
-//
-//
-//                @Override
-//                public void onSearchConfirmed(CharSequence text) {
-//                    getWeatherInformation(text.toString());
-//
-//                   searchBar.setLastSuggestions(strings);
-//                }
-//
-//                @Override
-//                public void onButtonClicked(int buttonCode) {
-//
-//                }
-//            });
-//
-//            searchBar.setLastSuggestions(strings);
-//
-//
-//        }
-//    }
-
-
-    private void getWeatherInformation(String cityName) {
-        disposables.add(mService.getWeatherByCityName(cityName,
-                Common.APP_ID,
-                "matric")
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<WeatherResult>() {
-                    @Override
-                    public void accept(WeatherResult weatherResult) throws Exception {
-                        Picasso.get().load(new StringBuilder("https://openweathermap.org/img/w/")
-                                .append(weatherResult.getWeather().get(0).getIcon())
-                                .append(".png").toString()).into(img_weather);
-
-                        //Load information
-                        txt_city_name.setText(weatherResult.getName());
-                        txt_description.setText(new StringBuilder("Weather in ")
-                                .append(weatherResult.getName()).toString());
-
-                        txt_temperature.setText(new StringBuilder(String.valueOf((int) (weatherResult.getMain().getTemp() - 273))).append("°C").toString());
-                        txt_date_time.setText(Common.convertUnixToDate(weatherResult.getDt()));
-                        txt_pressure.setText(new StringBuilder(String.valueOf(weatherResult.getMain().getPressure())).append(" hpa").toString());
-                        txt_humidity.setText(new StringBuilder(String.valueOf(weatherResult.getMain().getHumidity())).append(" %").toString());
-                        txt_sunrise.setText(Common.convertUnixToHour(weatherResult.getSys().getSunrise()));
-                        txt_sunset.setText(Common.convertUnixToHour(weatherResult.getSys().getSunset()));
-                        txt_geo_coord.setText(new StringBuilder().append(weatherResult.getCoord().toString()).toString());
-
-                        //Display panel
-                        weather_panel.setVisibility(View.VISIBLE);
-                        loading.setVisibility(View.GONE);
-
-                    }
-
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        System.out.println("Error ->>>" + throwable.getMessage().toString());
-                        Toast.makeText(getActivity(), "" + throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                })
-        );
-
-    }
 
     private void listenToSearchInput(){
 
@@ -352,7 +235,8 @@ public class CityFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                System.out.println("Inside LIsten toSearch -----------------------");
+                System.out.println("Inside LIsten toSearch ----------------------- "+charSequence);
+
                 mPublishSubject.onNext(charSequence.toString());
             }
 
@@ -362,63 +246,6 @@ public class CityFragment extends Fragment {
             }
         });
     }
-
-//    private void listenToSearchInput() {
-//        searchBar.setEnabled(true);
-//            searchBar.addTextChangeListener(new TextWatcher() {
-//                @Override
-//                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//
-//                }
-//
-//                @Override
-//                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//
-//                    List<String> suggest = new ArrayList<>();
-//                    long startTime = SystemClock.elapsedRealtime();
-//                    for (CityDb search : listCity) {
-//                        if (search.getName().toLowerCase().contains(searchBar.getText().toLowerCase())) {
-//                            suggest.add(search.getName());
-//                        }
-//                    }
-//                    searchBar.setLastSuggestions(suggest);
-//                    Log.d("CityFragment","Time it took:" + (SystemClock.elapsedRealtime() - startTime));
-//
-//                }
-//
-//                @Override
-//                public void afterTextChanged(Editable editable) {
-////
-//                }
-//            });
-//
-//            searchBar.setOnSearchActionListener(new MaterialSearchBar.OnSearchActionListener() {
-//
-//                @Override
-//                public void onSearchStateChanged(boolean enabled) {
-//
-//                }
-//
-//
-//                @Override
-//                public void onSearchConfirmed(CharSequence text) {
-//                    getWeatherInformation(text.toString());
-//
-//                   searchBar.setLastSuggestions(strings);
-//                }
-//
-//                @Override
-//                public void onButtonClicked(int buttonCode) {
-//
-//                }
-//            });
-//
-//            searchBar.setLastSuggestions(strings);
-//            loading.setVisibility(View.GONE);
-//
-//
-//
-//    }
 
 
     @Override
@@ -432,4 +259,60 @@ public class CityFragment extends Fragment {
         disposables.clear();
         super.onStop();
     }
+
+    @Override
+    public void onRefresh() {
+    loadData(true);
+    }
+
+    @Override
+    public void setData(WeatherResult weatherResult) {
+        Picasso.get().load(new StringBuilder("https://openweathermap.org/img/w/")
+                .append(weatherResult.getWeather().get(0).getIcon())
+                .append(".png").toString()).into(img_weather);
+
+        //Load information
+        txt_city_name.setText(weatherResult.getName());
+        System.out.println(weatherResult.getName()+"  ------------------>>>>> SetData");
+        txt_wind.setText("Speed:" + weatherResult.getWind().getSpeed() + "\n Deg:" + weatherResult.getWind().getDeg());
+        txt_description.setText(new StringBuilder("Weather in ")
+                .append(weatherResult.getName()).toString());
+        txt_temperature.setText(new StringBuilder(String.valueOf((int) (weatherResult.getMain().getTemp() - 273))).append("°C").toString());
+        txt_date_time.setText(Common.convertUnixToDate(weatherResult.getDt()));
+        txt_pressure.setText(new StringBuilder(String.valueOf(weatherResult.getMain().getPressure())).append(" hpa").toString());
+        txt_humidity.setText(new StringBuilder(String.valueOf(weatherResult.getMain().getHumidity())).append(" %").toString());
+        txt_sunrise.setText(Common.convertUnixToHour(weatherResult.getSys().getSunrise()));
+        txt_sunset.setText(Common.convertUnixToHour(weatherResult.getSys().getSunset()));
+        txt_geo_coord.setText(new StringBuilder().append(weatherResult.getCoord().toString()).toString());
+
+        //Display panel
+        weather_panel.setVisibility(getView().VISIBLE);
+        loadingView.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void loadData(boolean pullToRefresh) {
+        presenter.loadWeatherInformation(pullToRefresh,disposables,mService);
+    }
+
+
+    @Override
+    public void loadingVisibilityGone() {
+        loading.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void setSuggestions(List<String> suggestions) {
+        searchBar.setLastSuggestions(suggestions);
+        searchBar.showSuggestionsList();
+    }
+
+
+    @Override
+    public void showError(Throwable e, boolean pullToRefresh) {
+        super.showError(e, pullToRefresh);
+        contentView.setRefreshing(false);
+        Toast.makeText(getActivity(), "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+    }
+
 }
