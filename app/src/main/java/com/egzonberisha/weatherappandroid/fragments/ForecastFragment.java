@@ -33,28 +33,10 @@ import com.hannesdorfmann.mosby3.mvp.lce.MvpLceFragment;
  */
 public class ForecastFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherForecastResult, WeatherForecastView, WeatherForecastPresenter>
         implements WeatherForecastView, SwipeRefreshLayout.OnRefreshListener {
-    CompositeDisposable compositeDisposable;
-    IOpenWeatherMap mService;
 
     TextView txt_city_name;
     TextView txt_geo_coord;
     RecyclerView recycler_forecast;
-
-    static ForecastFragment instance;
-
-    public static ForecastFragment getInstance() {
-        if (instance == null) {
-            instance = new ForecastFragment();
-
-        }
-        return instance;
-    }
-
-    public ForecastFragment() {
-        compositeDisposable = new CompositeDisposable();
-        Retrofit retrofit = RetrofitClient.getInstance();
-        mService = retrofit.create(IOpenWeatherMap.class);
-    }
 
     @Override
     protected String getErrorMessage(Throwable e, boolean pullToRefresh) {
@@ -97,22 +79,11 @@ public class ForecastFragment extends MvpLceFragment<SwipeRefreshLayout, Weather
         loadData(false);
     }
 
-    @Override
-    public void onDestroy() {
-        compositeDisposable.clear();
-        super.onDestroy();
-    }
-
-    @Override
-    public void onStop() {
-        compositeDisposable.clear();
-        super.onStop();
-    }
-
 
     @Override
     public void loadData(boolean pullToRefresh) {
-        presenter.loadWeatherForecastInfo(pullToRefresh,compositeDisposable,mService);
+        presenter.init();
+        presenter.loadWeatherForecastInfo(pullToRefresh);
     }
 
     @Override

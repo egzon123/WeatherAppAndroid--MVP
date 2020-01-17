@@ -11,6 +11,7 @@ import com.egzonberisha.weatherappandroid.adapters.ViewPagerAdapter;
 import com.egzonberisha.weatherappandroid.fragments.CityFragment;
 import com.egzonberisha.weatherappandroid.fragments.ForecastFragment;
 import com.egzonberisha.weatherappandroid.presenters.MainPresenter;
+import com.egzonberisha.weatherappandroid.presenters.WeatherForecastPresenter;
 import com.egzonberisha.weatherappandroid.views.MainMvpView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
@@ -36,7 +37,7 @@ public class MainActivity extends MvpActivity<MainMvpView, MainPresenter> implem
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        presenter.loadCities(MainActivity.this);
+        presenter.loadCities();
         presenter.loadLocationPermissionDialog(MainActivity.this);
     }
 
@@ -55,11 +56,11 @@ public class MainActivity extends MvpActivity<MainMvpView, MainPresenter> implem
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
-        adapter.addFragment(TodayWeatherFragment.getInstance(), "Today");
+        adapter.addFragment(new TodayWeatherFragment(), "Today");
         System.out.println("-------------- TTodayWeatherFragment--------------");
-        adapter.addFragment(ForecastFragment.getInstance(), "5 DAYS");
+        adapter.addFragment(new ForecastFragment(), "5 DAYS");
         System.out.println("-------------- ForecastFragment--------------");
-        adapter.addFragment(CityFragment.getInstance(), "Cities");
+        adapter.addFragment(new CityFragment(), "Cities");
         System.out.println("-------------- CityFragment--------------");
         viewPager.setAdapter(adapter);
     }

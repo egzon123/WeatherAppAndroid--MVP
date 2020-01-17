@@ -12,9 +12,17 @@ import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 
 public class TodayWeatherPresenter extends MvpBasePresenter<TodayWeatherView> {
+   private CompositeDisposable compositeDisposable;
+   private IOpenWeatherMap mService;
+
+   public void initTodayWeatherPresenter(){
+       compositeDisposable = new CompositeDisposable();
+       Retrofit retrofit = RetrofitClient.getInstance();
+       mService = retrofit.create(IOpenWeatherMap.class);
+   }
 
 
-    public void loadWeatherInformation(final boolean pullToRefresh,CompositeDisposable compositeDisposable,IOpenWeatherMap mService) {
+    public void loadWeatherInformation(final boolean pullToRefresh) {
         compositeDisposable = new CompositeDisposable();
         Retrofit retrofit = RetrofitClient.getInstance();
         mService = retrofit.create(IOpenWeatherMap.class);

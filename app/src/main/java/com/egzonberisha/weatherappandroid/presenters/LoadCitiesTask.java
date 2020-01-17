@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 
 import com.egzonberisha.weatherappandroid.R;
+import com.egzonberisha.weatherappandroid.WeatherApp;
 import com.egzonberisha.weatherappandroid.model.CityDb;
 import com.egzonberisha.weatherappandroid.model.CityDbRepository;
 import com.google.gson.Gson;
@@ -20,21 +21,17 @@ import java.util.zip.GZIPInputStream;
 
 public class LoadCitiesTask extends SimpleAsyncTask<Void> {
     private CityDbRepository cityDbRepository;
-    private Context context;
 
-    public LoadCitiesTask(Context context){
-        this.context = context;
-    }
-        @Override
-        protected Void doInBackgroundSimple() {
-    cityDbRepository = new CityDbRepository((Application) context.getApplicationContext());
-            System.out.println("<<<----- LoadCityTask  count = "+cityDbRepository.countRecords());
-            //check if database exist
-            if(cityDbRepository.countRecords() <1){
+    @Override
+    protected Void doInBackgroundSimple() {
+        cityDbRepository = new CityDbRepository(WeatherApp.getInstance());
+        System.out.println("<<<----- LoadCityTask  count = " + cityDbRepository.countRecords());
+        //check if database exist
+        if (cityDbRepository.countRecords() < 1) {
             List<String> listCities = new ArrayList<>();
             try {
                 StringBuilder builder = new StringBuilder();
-                InputStream inputStream = context.getResources().openRawResource(R.raw.city_list);
+                InputStream inputStream = WeatherApp.getInstance().getResources().openRawResource(R.raw.city_list);
                 GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream);
                 InputStreamReader inputStreamReader = new InputStreamReader(gzipInputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -50,12 +47,12 @@ public class LoadCitiesTask extends SimpleAsyncTask<Void> {
                 e.printStackTrace();
             }
             System.out.println("-------------->>>>>>");
-            for(String s :listCities){
+            for (String s : listCities) {
                 cityDbRepository.insert(new CityDb(s));
             }
             System.out.println("-------------->>>>>>");
 
-            }
-            return null;
         }
+        return null;
     }
+}

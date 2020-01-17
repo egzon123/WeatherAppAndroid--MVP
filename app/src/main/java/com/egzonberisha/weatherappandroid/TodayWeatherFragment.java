@@ -63,25 +63,6 @@ public class TodayWeatherFragment extends MvpLceFragment<SwipeRefreshLayout, Wea
     LinearLayout weather_panel;
     @BindView(R.id.loadingView)
     ProgressBar loadingView;
-    CompositeDisposable compositeDisposable;
-    IOpenWeatherMap mService;
-
-    static TodayWeatherFragment instance;
-
-    public static TodayWeatherFragment getInstance() {
-        if (instance == null) {
-            instance = new TodayWeatherFragment();
-        }
-        return instance;
-    }
-
-    public TodayWeatherFragment() {
-        compositeDisposable = new CompositeDisposable();
-        Retrofit retrofit = RetrofitClient.getInstance();
-        mService = retrofit.create(IOpenWeatherMap.class);
-
-    }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -89,6 +70,7 @@ public class TodayWeatherFragment extends MvpLceFragment<SwipeRefreshLayout, Wea
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_today, container, false);
         System.out.println("-------Inside onCreateView TodayFragment--------");
+        presenter.initTodayWeatherPresenter();
         return view;
     }
 
@@ -103,20 +85,9 @@ public class TodayWeatherFragment extends MvpLceFragment<SwipeRefreshLayout, Wea
 
     @Override
     public void loadData(boolean pullToRefresh) {
-        presenter.loadWeatherInformation(pullToRefresh, compositeDisposable, mService);
+        presenter.loadWeatherInformation(pullToRefresh);
     }
 
-    @Override
-    public void onDestroy() {
-        compositeDisposable.clear();
-        super.onDestroy();
-    }
-
-    @Override
-    public void onStop() {
-        compositeDisposable.clear();
-        super.onStop();
-    }
 
 
     @Override

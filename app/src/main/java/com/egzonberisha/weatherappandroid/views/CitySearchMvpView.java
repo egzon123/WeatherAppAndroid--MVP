@@ -9,5 +9,5 @@ import java.util.List;
 public interface CitySearchMvpView extends MvpLceView<WeatherResult> {
     void loadingVisibilityGone();
     void setSuggestions(List<String> suggestions);
-    void searchConfirmed();
+
 }

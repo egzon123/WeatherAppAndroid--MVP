@@ -14,11 +14,9 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
-import retrofit2.Retrofit;
 
 import android.os.SystemClock;
 import android.text.Editable;
@@ -37,17 +35,12 @@ import com.egzonberisha.weatherappandroid.R;
 import com.egzonberisha.weatherappandroid.common.Common;
 import com.egzonberisha.weatherappandroid.model.CityDbRepository;
 import com.egzonberisha.weatherappandroid.model.WeatherResult;
-import com.egzonberisha.weatherappandroid.presenters.CitySearchMvpPresenter;
-import com.egzonberisha.weatherappandroid.presenters.TodayWeatherPresenter;
-import com.egzonberisha.weatherappandroid.retrofit.IOpenWeatherMap;
-import com.egzonberisha.weatherappandroid.retrofit.RetrofitClient;
+import com.egzonberisha.weatherappandroid.presenters.CitySearchPresenter;
 import com.egzonberisha.weatherappandroid.views.CitySearchMvpView;
-import com.egzonberisha.weatherappandroid.views.TodayWeatherView;
 import com.hannesdorfmann.mosby3.mvp.lce.MvpLceFragment;
 import com.mancj.materialsearchbar.MaterialSearchBar;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -55,46 +48,16 @@ import java.util.concurrent.TimeUnit;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResult,CitySearchMvpView ,CitySearchMvpPresenter>
+public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResult,CitySearchMvpView , CitySearchPresenter>
         implements CitySearchMvpView, SwipeRefreshLayout.OnRefreshListener {
 
-    private List<String> listCities;
+
     private MaterialSearchBar searchBar;
-
-    private TextView mNoResultsTextview;
-    CompositeDisposable disposables;
-    PublishSubject<String> mPublishSubject;
-    IOpenWeatherMap mService;
-    CityDbRepository cityDbRepository;
-
 
     ImageView img_weather;
     TextView txt_city_name, txt_humidity, txt_sunrise, txt_sunset, txt_pressure, txt_temperature, txt_description, txt_date_time, txt_wind, txt_geo_coord;
     LinearLayout weather_panel;
     ProgressBar loading;
-
-    static CityFragment instance;
-
-    public static CityFragment getInstance() {
-        if (instance == null) {
-            instance = new CityFragment();
-        }
-        return instance;
-    }
-
-    public CityFragment() {
-        disposables = new CompositeDisposable();
-        Retrofit retrofit = RetrofitClient.getInstance();
-        mService = retrofit.create(IOpenWeatherMap.class);
-
-        System.out.println("--->>>>> City Fragment constructor");
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        cityDbRepository = new CityDbRepository((Application) context.getApplicationContext());
-    }
 
     @Override
     protected String getErrorMessage(Throwable e, boolean pullToRefresh) {
@@ -102,8 +65,8 @@ public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResu
     }
 
     @Override
-    public CitySearchMvpPresenter createPresenter() {
-        return new CitySearchMvpPresenter();
+    public CitySearchPresenter createPresenter() {
+        return new CitySearchPresenter();
     }
 
     @Override
@@ -129,12 +92,10 @@ public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResu
         loading = itemView.findViewById(R.id.loadingView);
         searchBar = itemView.findViewById(R.id.searchBar);
 
-        disposables = new CompositeDisposable();
-        listCities = new ArrayList<>();
-        searchBar.setEnabled(true);
-        initObservable();
+         presenter.initCityPresenter();
 
-//       new LoadCities().execute(); // AsyncTask class to load Cities list
+        searchBar.setEnabled(true);
+        presenter.initObservable();
 
         return itemView;
     }
@@ -147,59 +108,7 @@ public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResu
 
     }
 
-    @SuppressLint("CheckResult")
-    public void initObservable() {
-        mPublishSubject = PublishSubject.create();
-        mPublishSubject
-                .debounce(400, TimeUnit.MILLISECONDS)
-                .map(searchString)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<List<String>>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        disposables.add(d);
-                    }
 
-                    @Override
-                    public void onNext(List<String> strings) {
-                        System.out.println("-->>Inside onNext init--->> "+strings.toString());
-                        loading.setVisibility(View.GONE);
-                        if(strings.size() >1) {
-
-                            System.out.println("Inside showSearchResult --------->>>>>>> " + strings.size() + " -- " + strings.get(0));
-                            long startTime = SystemClock.elapsedRealtime();
-                            searchBar.setLastSuggestions(strings);
-                            searchBar.showSuggestionsList();
-                            searchConfirmed();
-                            Log.d("CityFragment", "Time it took:" + (SystemClock.elapsedRealtime() - startTime));
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-
-    }
-
-    Function<String, List<String>> searchString = new Function<String, List<String>>() {
-        @Override
-        public List<String> apply(String s) throws Exception {
-            System.out.println("Inside apply searchString ------->>>"+s);
-            return cityDbRepository.getCitiesByCityName(s);
-        }
-
-    };
-
-
-    @Override
     public void searchConfirmed(){
         searchBar.setOnSearchActionListener(new MaterialSearchBar.OnSearchActionListener() {
 
@@ -237,7 +146,7 @@ public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResu
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 System.out.println("Inside LIsten toSearch ----------------------- "+charSequence);
 
-                mPublishSubject.onNext(charSequence.toString());
+                presenter.onTextChangedListener(charSequence.toString());
             }
 
             @Override
@@ -248,17 +157,6 @@ public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResu
     }
 
 
-    @Override
-    public void onDestroy() {
-        disposables.clear();
-        super.onDestroy();
-    }
-
-    @Override
-    public void onStop() {
-        disposables.clear();
-        super.onStop();
-    }
 
     @Override
     public void onRefresh() {
@@ -292,7 +190,7 @@ public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResu
 
     @Override
     public void loadData(boolean pullToRefresh) {
-        presenter.loadWeatherInformation(pullToRefresh,disposables,mService);
+        presenter.loadWeatherInformation(pullToRefresh);
     }
 
 
@@ -305,6 +203,7 @@ public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResu
     public void setSuggestions(List<String> suggestions) {
         searchBar.setLastSuggestions(suggestions);
         searchBar.showSuggestionsList();
+        searchConfirmed();
     }
 
 

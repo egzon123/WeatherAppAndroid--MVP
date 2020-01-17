@@ -31,8 +31,8 @@ public class MainPresenter extends MvpBasePresenter<MainMvpView> {
     private LocationRequest locationRequest;
 
 
-    public void loadCities(Context context){
-        new LoadCitiesTask(context).execute();
+    public void loadCities(){
+        new LoadCitiesTask().execute();
     }
 
     public void loadLocationPermissionDialog(Context context) {

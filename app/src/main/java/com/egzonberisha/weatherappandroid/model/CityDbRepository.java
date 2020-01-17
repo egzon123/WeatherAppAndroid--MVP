@@ -25,7 +25,14 @@ public class CityDbRepository {
     }
 
     public long countRecords(){
-       return recordsCount;
+        try {
+            recordsCount = new AyncTaskCountData().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR).get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return recordsCount;
     }
 
     public List<String> getCitiesByCityName(String cityName){
@@ -37,24 +44,6 @@ public class CityDbRepository {
         }
         System.out.println("===ToReturn==="+toReturn.size());
        return toReturn;
-    }
-
-    private long getCountRecords() {
-        final long[] count = {0};
-        new AsyncTask<Void,Void,Long>(){
-
-            @Override
-            protected Long doInBackground(Void... voids) {
-               return cityDbDao.countRecords();
-            }
-
-            @Override
-            protected void onPostExecute(Long aLong) {
-                super.onPostExecute(aLong);
-
-            }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-      return count[0];
     }
 
     public void insertCityDb(CityDb cityDb) {
