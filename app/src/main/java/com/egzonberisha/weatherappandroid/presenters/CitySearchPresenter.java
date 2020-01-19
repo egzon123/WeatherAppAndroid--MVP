@@ -52,7 +52,6 @@ public class CitySearchPresenter extends MvpBasePresenter<CitySearchMvpView> {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(weatherResult -> {
-
                     ifViewAttached(view -> {
                         System.out.println(weatherResult.toString() + "=======Inside loadWeather result");
                         view.setData(weatherResult);
@@ -123,5 +122,9 @@ public class CitySearchPresenter extends MvpBasePresenter<CitySearchMvpView> {
 
     public void onTextChangedListener(String text){
         mPublishSubject.onNext(text);
+    }
+
+    public void clearDisposable(){
+        disposables.clear();
     }
 }

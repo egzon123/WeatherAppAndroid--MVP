@@ -2,7 +2,6 @@ package com.egzonberisha.weatherappandroid.model;
 
 import java.util.List;
 
-import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
@@ -16,7 +15,7 @@ public interface CityDbDao {
     List<CityDb> getAllCities();
 
     @Query("SELECT count(*) FROM citydb_table")
-    long countRecords();
+    Long countRecords();
 
     @Query("SELECT * FROM citydb_table where name LIKE :cityName || '%'")
     List<CityDb> searchForCity(String cityName);

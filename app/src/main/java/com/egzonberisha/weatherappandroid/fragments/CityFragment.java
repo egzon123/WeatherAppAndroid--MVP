@@ -214,4 +214,9 @@ public class CityFragment extends MvpLceFragment<SwipeRefreshLayout, WeatherResu
         Toast.makeText(getActivity(), "" + e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        presenter.clearDisposable();
+    }
 }

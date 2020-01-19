@@ -25,9 +25,9 @@ public class LoadCitiesTask extends SimpleAsyncTask<Void> {
     @Override
     protected Void doInBackgroundSimple() {
         cityDbRepository = new CityDbRepository(WeatherApp.getInstance());
-        System.out.println("<<<----- LoadCityTask  count = " + cityDbRepository.countRecords());
+        System.out.println("<<<----- LoadCityTask  count = " + cityDbRepository.getRecordsCount());
         //check if database exist
-        if (cityDbRepository.countRecords() < 1) {
+        if (cityDbRepository.getRecordsCount() < 1) {
             List<String> listCities = new ArrayList<>();
             try {
                 StringBuilder builder = new StringBuilder();
