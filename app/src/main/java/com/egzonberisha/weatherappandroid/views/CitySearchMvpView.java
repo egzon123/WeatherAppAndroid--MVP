@@ -10,4 +10,5 @@ public interface CitySearchMvpView extends MvpLceView<WeatherResult> {
     void loadingVisibilityGone();
     void setSuggestions(List<String> suggestions);
 
+
 }

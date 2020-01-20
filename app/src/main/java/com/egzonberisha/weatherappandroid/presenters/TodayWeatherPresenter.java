@@ -23,9 +23,7 @@ public class TodayWeatherPresenter extends MvpBasePresenter<TodayWeatherView> {
 
 
     public void loadWeatherInformation(final boolean pullToRefresh) {
-        compositeDisposable = new CompositeDisposable();
-        Retrofit retrofit = RetrofitClient.getInstance();
-        mService = retrofit.create(IOpenWeatherMap.class);
+
         compositeDisposable.add(mService.getWeatherByLatLng(String.valueOf(Common.current_location.getLatitude()),
                 String.valueOf(Common.current_location.getLongitude()),
                 Common.APP_ID,

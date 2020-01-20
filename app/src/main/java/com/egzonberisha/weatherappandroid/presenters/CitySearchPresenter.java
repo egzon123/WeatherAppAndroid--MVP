@@ -3,7 +3,6 @@ package com.egzonberisha.weatherappandroid.presenters;
 import android.annotation.SuppressLint;
 import android.os.SystemClock;
 import android.util.Log;
-import android.view.View;
 
 import com.egzonberisha.weatherappandroid.WeatherApp;
 import com.egzonberisha.weatherappandroid.common.Common;
@@ -11,12 +10,16 @@ import com.egzonberisha.weatherappandroid.model.CityDbRepository;
 import com.egzonberisha.weatherappandroid.retrofit.IOpenWeatherMap;
 import com.egzonberisha.weatherappandroid.retrofit.RetrofitClient;
 import com.egzonberisha.weatherappandroid.views.CitySearchMvpView;
-import com.egzonberisha.weatherappandroid.views.TodayWeatherView;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
+
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -34,12 +37,13 @@ public class CitySearchPresenter extends MvpBasePresenter<CitySearchMvpView> {
     private IOpenWeatherMap mService;
     private CityDbRepository cityDbRepository;
 
-    public void initCityPresenter(){
+    public void initCityPresenter() {
         disposables = new CompositeDisposable();
         Retrofit retrofit = RetrofitClient.getInstance();
         mService = retrofit.create(IOpenWeatherMap.class);
         cityDbRepository = new CityDbRepository(WeatherApp.getInstance());
     }
+
     public void setCityNameToSearch(String cityName) {
         cityNameToSearch = cityName;
     }
@@ -67,64 +71,40 @@ public class CitySearchPresenter extends MvpBasePresenter<CitySearchMvpView> {
     @SuppressLint("CheckResult")
     public void initObservable() {
         mPublishSubject = PublishSubject.create();
-        mPublishSubject
-                .debounce(400, TimeUnit.MILLISECONDS)
-                .map(searchString)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<List<String>>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        disposables.add(d);
-                    }
+        disposables.add(
+                mPublishSubject.debounce(400, TimeUnit.MILLISECONDS)
+                        .toFlowable(BackpressureStrategy.DROP)
+                        .filter(charSecuence -> charSecuence.length() > 3)
+                        .flatMap(s -> cityDbRepository.getCitiesByCityNameObservabe(s))
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(strings -> {
+                            System.out.println("-->>Inside onNext init--->> " + strings.toString());
+                            if (strings.size() >= 1) {
 
-                    @Override
-                    public void onNext(List<String> strings) {
-                        System.out.println("-->>Inside onNext init--->> "+strings.toString());
-                        if(strings.size() >1) {
+                                ifViewAttached(view -> {
+                                    view.loadingVisibilityGone();
+                                    System.out.println("Inside showSearchResult --------->>>>>>> " + strings.size() + " -- " + strings.get(0));
+                                    long startTime = SystemClock.elapsedRealtime();
+                                    view.setSuggestions(strings);
 
-                            ifViewAttached(view -> {
-                                view.loadingVisibilityGone();
-                                System.out.println("Inside showSearchResult --------->>>>>>> " + strings.size() + " -- " + strings.get(0));
-                                long startTime = SystemClock.elapsedRealtime();
-                                view.setSuggestions(strings);
+                                    Log.d("CityFragment", "Time it took:" + (SystemClock.elapsedRealtime() - startTime));
+                                });
 
-                                Log.d("CityFragment", "Time it took:" + (SystemClock.elapsedRealtime() - startTime));
-                            });
+                            }
+                        }, throwable -> {
 
-
-
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
+                        })
+        );
 
     }
 
 
-    Function<String, List<String>> searchString = new Function<String, List<String>>() {
-        @Override
-        public List<String> apply(String s) throws Exception {
-            System.out.println("Inside apply searchString ------->>>"+s);
-            return cityDbRepository.getCitiesByCityName(s);
-        }
-
-    };
-
-    public void onTextChangedListener(String text){
+    public void onTextChangedListener(String text) {
         mPublishSubject.onNext(text);
     }
 
-    public void clearDisposable(){
+    public void clearDisposable() {
         disposables.clear();
     }
 }

@@ -2,9 +2,13 @@ package com.egzonberisha.weatherappandroid.model;
 
 import java.util.List;
 
+
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
+
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
 
 @Dao
 public interface CityDbDao {
@@ -18,5 +22,5 @@ public interface CityDbDao {
     Long countRecords();
 
     @Query("SELECT * FROM citydb_table where name LIKE :cityName || '%'")
-    List<CityDb> searchForCity(String cityName);
+    Flowable<List<CityDb>> searchForCity(String cityName);
 }
